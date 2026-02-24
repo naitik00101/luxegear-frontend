@@ -1,3 +1,4 @@
+console.log("PRODUCTION BASE:", import.meta.env.VITE_API_URL);
 const BASE = import.meta.env.VITE_API_URL;
 
 const getToken = () => localStorage.getItem("luxegear-token");
