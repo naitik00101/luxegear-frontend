@@ -1,0 +1,79 @@
+.toast-container {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: 380px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--border-radius-md);
+  border: 1px solid transparent;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-lg);
+  animation: slideInRight 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-success { background: rgba(67, 233, 123, 0.15); border-color: rgba(67, 233, 123, 0.3); }
+.toast-error   { background: rgba(255, 90, 90, 0.15);  border-color: rgba(255, 90, 90, 0.3);  }
+.toast-info    { background: rgba(108, 99, 255, 0.15); border-color: rgba(108, 99, 255, 0.3); }
+.toast-warning { background: rgba(245, 166, 35, 0.15); border-color: rgba(245, 166, 35, 0.3); }
+
+.toast-success .toast-icon { color: var(--color-accent); }
+.toast-error   .toast-icon { color: #ff5a5a; }
+.toast-info    .toast-icon { color: var(--color-primary-light); }
+.toast-warning .toast-icon { color: var(--color-gold); }
+
+.toast-icon { flex-shrink: 0; }
+
+.toast-message {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.toast-close {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+.toast-close:hover { color: var(--text-primary); }
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  animation: shrink linear forwards;
+  transform-origin: left;
+}
+
+.toast-success .toast-progress { background: var(--color-accent); }
+.toast-error   .toast-progress { background: #ff5a5a; }
+.toast-info    .toast-progress { background: var(--color-primary); }
+.toast-warning .toast-progress { background: var(--color-gold); }
+
+@keyframes shrink {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    left: var(--space-md);
+    right: var(--space-md);
+    bottom: var(--space-md);
+    max-width: 100%;
+  }
+}
