@@ -7,6 +7,7 @@ import hpp from "hpp";
 export const securityHeaders = helmet({
     contentSecurityPolicy: false,        // disabled so frontend can load freely
     crossOriginEmbedderPolicy: false,    // allows loading external images (dicebear, etc.)
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allows resources to be shared across origins
 });
 
 // ── Global rate limiter — 100 requests per 15 min window ───────────────

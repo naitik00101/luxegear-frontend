@@ -27,9 +27,7 @@ initializePassport();
 
 const app = express();
 
-connectDB();
-
-// ── CORS ───────────────────────────────────────────────────────────────
+// ── CORS (Must be at the top to handle preflight requests) ────────────
 const allowedOrigins = [
     "https://luxegear-vip.vercel.app",
     "https://luxegear-frontend.vercel.app",
@@ -41,10 +39,7 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow internal requests or those with no origin
         if (!origin) return callback(null, true);
-
-        // Match exact or check if it ends with vercel.app (optional but safer for now)
         if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
             callback(null, true);
         } else {
@@ -54,6 +49,8 @@ app.use(cors({
     },
     credentials: true,
 }));
+
+connectDB();
 
 // ── Security Middleware ────────────────────────────────────────────────
 app.use(securityHeaders);
