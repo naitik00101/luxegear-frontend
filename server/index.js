@@ -31,6 +31,7 @@ connectDB();
 
 // ── CORS ───────────────────────────────────────────────────────────────
 const allowedOrigins = [
+    "https://luxegear-vip.vercel.app",
     "https://luxegear-frontend.vercel.app",
     "http://localhost:5173",
     process.env.CLIENT_URL,
