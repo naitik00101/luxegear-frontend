@@ -7,7 +7,7 @@ import ProductCard from "../components/product/ProductCard";
 import "./WishlistPage.css";
 
 const WishlistPage = () => {
-  const { wishlistItems, removeFromWishlist } = useWishlist();
+  const { wishlistItems } = useWishlist();
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -48,7 +48,7 @@ const WishlistPage = () => {
         </div>
         <div className="grid-auto">
           {wishlistItems.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p._id} product={p} />
           ))}
         </div>
       </div>

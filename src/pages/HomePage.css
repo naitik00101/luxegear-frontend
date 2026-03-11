@@ -127,8 +127,8 @@
 .hero__eyebrow {
   display: inline-block;
   padding: 6px 16px;
-  background: rgba(108, 99, 255, 0.15);
-  border: 1px solid rgba(108, 99, 255, 0.3);
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -184,7 +184,7 @@
   width: 380px;
   height: 380px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(108,99,255,0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, transparent 70%);
   animation: glow 4s ease-in-out infinite;
 }
 
@@ -382,7 +382,7 @@
   gap: var(--space-3xl);
   align-items: center;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(108,99,255,0.08) 0%, rgba(255,101,132,0.05) 100%);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-xl);
   padding: var(--space-3xl);
@@ -392,7 +392,7 @@
   position: absolute;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(108,99,255,0.2), transparent 60%);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.2), transparent 60%);
   right: 0;
   top: -100px;
   pointer-events: none;

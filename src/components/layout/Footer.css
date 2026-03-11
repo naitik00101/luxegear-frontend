@@ -51,8 +51,8 @@
 }
 
 .social-icon:hover {
-  color: var(--color-primary-light);
-  background: rgba(108, 99, 255, 0.1);
+  color: var(--color-gold);
+  background: rgba(212, 175, 55, 0.1);
   border-color: var(--border-color-strong);
 }
 

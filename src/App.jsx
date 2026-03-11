@@ -11,7 +11,12 @@ import WishlistPage from "./pages/WishlistPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AdminRoute from "./components/auth/AdminRoute";
+import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
+import AIChat from "./components/features/AIChat";
 import AdminPage from "./pages/AdminPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const ScrollToTop = () => {
@@ -24,7 +29,7 @@ const ScrollToTop = () => {
 
 const App = () => {
   const { pathname } = useLocation();
-  const hideLayout = pathname === "/auth";
+  const hideLayout = pathname === "/auth" || pathname.startsWith("/admin");
 
   return (
     <>
@@ -37,14 +42,26 @@ const App = () => {
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/cart"        element={<CartPage />} />
           <Route path="/wishlist"    element={<WishlistPage />} />
-          <Route path="/checkout"    element={<CheckoutPage />} />
           <Route path="/auth"        element={<AuthPage />} />
-          <Route path="/profile"     element={<ProfilePage />} />
-          <Route path="/admin"       element={<AdminPage />} />
+          
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/checkout"         element={<CheckoutPage />} />
+            <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+            <Route path="/profile"          element={<ProfilePage />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin/login"      element={<AdminLoginPage />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin"            element={<AdminPage />} />
+          </Route>
+
           <Route path="*"            element={<NotFoundPage />} />
         </Routes>
       </main>
       {!hideLayout && <Footer />}
+      <AIChat />
       <Toast />
     </>
   );

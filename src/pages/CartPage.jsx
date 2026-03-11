@@ -72,13 +72,13 @@ const CartPage = () => {
         <div className="cart-layout">
           <div className="cart-items">
             {cartItems.map((item) => (
-              <div key={item.id} className="cart-item">
-                <Link to={`/product/${item.id}`} className="cart-item__img-wrap">
+              <div key={item._id} className="cart-item">
+                <Link to={`/product/${item._id}`} className="cart-item__img-wrap">
                   <img src={item.images[0]} alt={item.name} className="cart-item__img" />
                 </Link>
                 <div className="cart-item__info">
                   <span className="cart-item__category">{item.category}</span>
-                  <Link to={`/product/${item.id}`} className="cart-item__name">{item.name}</Link>
+                  <Link to={`/product/${item._id}`} className="cart-item__name">{item.name}</Link>
                   <div className="cart-item__price-row">
                     <span className="cart-item__price">{formatCurrency(item.price)}</span>
                     {item.originalPrice > item.price && (
@@ -88,14 +88,14 @@ const CartPage = () => {
                 </div>
                 <div className="cart-item__controls">
                   <div className="qty-control">
-                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
+                    <button onClick={() => updateQuantity(item._id, item.quantity - 1)}>−</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)} disabled={item.quantity >= item.stock}>+</button>
+                    <button onClick={() => updateQuantity(item._id, item.quantity + 1)} disabled={item.quantity >= item.stock}>+</button>
                   </div>
                   <span className="cart-item__subtotal">{formatCurrency(item.price * item.quantity)}</span>
                   <button
                     className="cart-item__remove"
-                    onClick={() => { removeFromCart(item.id); toast.info(`${item.name} removed.`); }}
+                    onClick={() => { removeFromCart(item._id); toast.info(`${item.name} removed.`); }}
                     aria-label="Remove"
                   >
                     <IoTrashOutline size={18} />
@@ -157,7 +157,7 @@ const CartPage = () => {
               </div>
               {shipping > 0 && (
                 <p className="free-shipping-hint">
-                  Add {formatCurrency(150 - subtotal + discountAmount)} more for free shipping!
+                  Add {formatCurrency(10000 - subtotal + discountAmount)} more for free shipping!
                 </p>
               )}
             </div>

@@ -51,8 +51,10 @@ const Navbar = () => {
 
   useEffect(() => {
     if (location.pathname !== "/shop") {
-      setSearchQuery("");
-      setSearchOpen(false);
+      setTimeout(() => {
+        setSearchQuery("");
+        setSearchOpen(false);
+      }, 0);
     }
   }, [location.pathname]);
 

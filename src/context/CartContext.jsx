@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useCallback } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
 
@@ -16,10 +17,10 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = useCallback((product, quantity = 1) => {
     setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+      const existing = prev.find((item) => item._id === product._id);
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
+          item._id === product._id
             ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) }
             : item
         );
@@ -29,7 +30,7 @@ export const CartProvider = ({ children }) => {
   }, [setCartItems]);
 
   const removeFromCart = useCallback((productId) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== productId));
+    setCartItems((prev) => prev.filter((item) => item._id !== productId));
   }, [setCartItems]);
 
   const updateQuantity = useCallback((productId, quantity) => {
@@ -39,7 +40,7 @@ export const CartProvider = ({ children }) => {
     }
     setCartItems((prev) =>
       prev.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
+        item._id === productId ? { ...item, quantity } : item
       )
     );
   }, [setCartItems, removeFromCart]);
@@ -69,7 +70,7 @@ export const CartProvider = ({ children }) => {
     const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const discountAmount = (subtotal * appliedDiscount) / 100;
-    const shipping = subtotal > 150 ? 0 : subtotal > 0 ? 9.99 : 0;
+    const shipping = subtotal > 10000 ? 0 : subtotal > 0 ? 500 : 0;
     const total = subtotal - discountAmount + shipping;
 
     return {

@@ -331,7 +331,6 @@ const products = [
         isSale: true,
         isFeatured: true,
         images: [
-            "https://images.unsplash.com/photo-1571941982-6b77d5637ae2?w=600&q=80",
             "https://images.unsplash.com/photo-1593640495253-23196b27a87f?w=600&q=80",
             "https://images.unsplash.com/photo-1547082299-de196ea013d6?w=600&q=80",
         ],

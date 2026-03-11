@@ -1,23 +1,14 @@
-import { useState, useMemo } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import {
-  IoCartOutline,
-  IoHeartOutline,
-  IoHeart,
-  IoChevronBack,
-  IoChevronForward,
-  IoCheckmarkCircle,
-  IoShieldCheckmarkOutline,
-  IoCarOutline,
-  IoStar,
-} from "react-icons/io5";
-import products from "../data/products";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { IoCartOutline, IoHeartOutline, IoHeart, IoChevronBack, IoChevronForward, IoCheckmarkCircle, IoShieldCheckmarkOutline, IoCarOutline, IoStar } from "react-icons/io5";
+import { productsAPI } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useToast } from "../context/ToastContext";
 import { formatCurrency } from "../utils/formatCurrency";
 import StarRating from "../components/product/StarRating";
 import ProductCard from "../components/product/ProductCard";
+import { DetailSkeleton } from "../components/ui/Skeleton";
 import "./ProductDetailPage.css";
 
 const MOCK_REVIEWS = [
@@ -28,8 +19,9 @@ const MOCK_REVIEWS = [
 
 const ProductDetailPage = () => {
   const { id } = useParams();
-  const product = useMemo(() => products.find((p) => p.id === Number(id)), [id]);
-  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [related, setRelated] = useState([]);
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { toast } = useToast();
@@ -38,6 +30,36 @@ const ProductDetailPage = () => {
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await productsAPI.getById(id);
+        const fetchedProduct = data.product || data;
+        setProduct(fetchedProduct);
+        
+        // Load related if category exists
+        if (fetchedProduct && fetchedProduct.category) {
+          const relData = await productsAPI.getAll({ category: fetchedProduct.category });
+          setRelated((relData.products || relData).filter(p => p._id !== id).slice(0, 4));
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id]);
+
+  if (loading) return (
+    <div className="page-wrapper product-detail-page">
+      <div className="container">
+        <DetailSkeleton />
+      </div>
+    </div>
+  );
 
   if (!product) {
     return (
@@ -50,8 +72,7 @@ const ProductDetailPage = () => {
     );
   }
 
-  const wishlisted = isWishlisted(product.id);
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const wishlisted = isWishlisted(product._id);
   const discount = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -165,7 +186,7 @@ const ProductDetailPage = () => {
 
             {/* Perks */}
             <div className="detail-perks">
-              <div className="detail-perk"><IoCarOutline size={18} /> Free shipping over $150</div>
+              <div className="detail-perk"><IoCarOutline size={18} /> Free shipping over ₹10,000</div>
               <div className="detail-perk"><IoShieldCheckmarkOutline size={18} /> 2-year warranty</div>
               <div className="detail-perk"><IoCheckmarkCircle size={18} /> 30-day returns</div>
             </div>

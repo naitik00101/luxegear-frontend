@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   IoHeadset,
@@ -12,29 +12,61 @@ import {
   IoCarOutline,
   IoRefreshOutline,
 } from "react-icons/io5";
-import products from "../data/products";
+import { productsAPI } from "../services/api";
 import ProductCard from "../components/product/ProductCard";
+import { ProductCardSkeleton } from "../components/ui/Skeleton";
 import "./HomePage.css";
 
 const CATEGORIES = [
-  { id: "headphones", label: "Audio", icon: <IoHeadset size={32} />, color: "var(--color-primary)" },
-  { id: "keyboards",  label: "Keyboards", icon: <IoKeypadOutline size={32} />, color: "var(--color-secondary)" },
-  { id: "monitors",   label: "Monitors", icon: <IoDesktopOutline size={32} />, color: "#43e97b" },
+  { id: "headphones", label: "Audio", icon: <IoHeadset size={32} />, color: "var(--color-gold)" },
+  { id: "keyboards",  label: "Keyboards", icon: <IoKeypadOutline size={32} />, color: "var(--color-gold)" },
+  { id: "monitors",   label: "Monitors", icon: <IoDesktopOutline size={32} />, color: "var(--color-gold)" },
   { id: "mice",       label: "Mice", icon: <IoSpeedometerOutline size={32} />, color: "var(--color-gold)" },
-  { id: "accessories",label: "Accessories", icon: <IoColorWandOutline size={32} />, color: "#a78bfa" },
+  { id: "accessories",label: "Accessories", icon: <IoColorWandOutline size={32} />, color: "var(--color-gold)" },
 ];
 
 const PERKS = [
-  { icon: <IoCarOutline size={28} />, title: "Free Shipping", desc: "On orders over $150" },
+  { icon: <IoCarOutline size={28} />, title: "Free Shipping", desc: "On orders over ₹10,000" },
   { icon: <IoShieldCheckmarkOutline size={28} />, title: "2-Year Warranty", desc: "All products covered" },
   { icon: <IoRefreshOutline size={28} />, title: "30-Day Returns", desc: "Hassle-free returns" },
   { icon: <IoGridOutline size={28} />, title: "Premium Selection", desc: "Curated top-tier gear" },
 ];
 
 const HomePage = () => {
-  const featured = useMemo(() => products.filter((p) => p.isFeatured).slice(0, 4), []);
-  const newArrivals = useMemo(() => products.filter((p) => p.newArrival).slice(0, 4), []);
-  const sales = useMemo(() => products.filter((p) => p.isSale).slice(0, 4), []);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await productsAPI.getAll();
+        setProducts(data.products || data);
+      } catch (e) {
+        console.error("Failed to load products:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const featured = useMemo(() => products.filter((p) => p.isFeatured).slice(0, 4), [products]);
+  const newArrivals = useMemo(() => products.filter((p) => p.newArrival).slice(0, 4), [products]);
+  const sales = useMemo(() => products.filter((p) => p.isSale).slice(0, 4), [products]);
+  
+  if (loading) {
+    return (
+      <main className="home-page page-wrapper">
+        <section className="section">
+          <div className="container">
+            <div className="grid-auto">
+              {[...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)}
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="home-page page-wrapper">
@@ -56,7 +88,7 @@ const HomePage = () => {
             </p>
             <div className="hero__actions">
               <Link to="/shop" className="btn btn-primary btn-lg">
-                Shop Collection <IoArrowForward />
+                Gold Collection <IoArrowForward />
               </Link>
               <Link to="/shop?isFeatured=true" className="btn btn-outline btn-lg">
                 View Bestsellers
@@ -93,7 +125,7 @@ const HomePage = () => {
             <div className="hero__floating-card hero__floating-card--2">
               <div>
                 <p className="floating-title">Free Shipping</p>
-                <p className="floating-sub">Orders over $150</p>
+                <p className="floating-sub">Orders over ₹10,000</p>
               </div>
             </div>
           </div>

@@ -66,8 +66,8 @@
 }
 
 .nav-link.active {
-  color: var(--color-primary-light);
-  background: rgba(108, 99, 255, 0.1);
+  color: var(--color-gold);
+  background: rgba(212, 175, 55, 0.1);
 }
 
 /* Actions */
@@ -103,7 +103,7 @@
   height: 18px;
   padding: 0 4px;
   border-radius: var(--border-radius-full);
-  background: var(--color-secondary);
+  background: var(--color-gold);
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -186,7 +186,7 @@
 }
 
 .user-menu__item:hover { background: var(--bg-input); color: var(--text-primary); }
-.user-menu__logout { color: var(--color-secondary); }
+.user-menu__logout { color: var(--color-gold-dark); }
 
 /* Search Bar */
 .navbar__search-bar {

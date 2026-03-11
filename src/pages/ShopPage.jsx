@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { IoGrid, IoList, IoFunnel, IoClose } from "react-icons/io5";
-import products from "../data/products";
+import { productsAPI } from "../services/api";
 import { filterProducts, sortProducts } from "../utils/filterProducts";
 import ProductCard from "../components/product/ProductCard";
+import { ProductCardSkeleton } from "../components/ui/Skeleton";
 import "./ShopPage.css";
 
 const CATEGORIES = ["headphones", "keyboards", "monitors", "mice", "accessories"];
@@ -20,9 +21,27 @@ const PAGE_SIZE = 8;
 
 const ShopPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("default");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await productsAPI.getAll();
+      setProducts(data.products || data);
+    } catch (e) {
+      console.error("Failed to fetch products", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const [filters, setFilters] = useState(() => ({
     search:     searchParams.get("search") || "",
@@ -43,7 +62,7 @@ const ShopPage = () => {
         categories: cat ? [cat] : f.categories,
       }));
     }
-  }, []);
+  }, [searchParams]);
 
   const toggleCategory = (cat) => {
     setFilters((f) => {
@@ -67,7 +86,7 @@ const ShopPage = () => {
     setSearchParams({});
   };
 
-  const filtered  = useMemo(() => filterProducts(products, filters), [filters]);
+  const filtered  = useMemo(() => filterProducts(products, filters), [products, filters]);
   const sorted    = useMemo(() => sortProducts(filtered, sortBy), [filtered, sortBy]);
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const paginated = useMemo(
@@ -155,7 +174,7 @@ const ShopPage = () => {
             </div>
 
             <div className="filter-group">
-              <h4 className="filter-group__title">Max Price: ${filters.maxPrice}</h4>
+              <h4 className="filter-group__title">Max Price: ₹{filters.maxPrice.toLocaleString('en-IN')}</h4>
               <input
                 type="range"
                 min={0}
@@ -200,7 +219,11 @@ const ShopPage = () => {
           </aside>
 
           <div className="shop-products">
-            {paginated.length === 0 ? (
+            {loading ? (
+              <div className="grid-auto">
+                {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
+              </div>
+            ) : paginated.length === 0 ? (
               <div className="empty-state">
                 <h3>No products found</h3>
                 <p>Try adjusting your filters or search query.</p>

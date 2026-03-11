@@ -21,7 +21,7 @@ const ProductCard = ({ product }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  const wishlisted = isWishlisted(product.id);
+  const wishlisted = isWishlisted(product._id);
 
   const handleAddToCart = useCallback(
     async (e) => {
@@ -52,7 +52,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <article className="product-card">
-      <Link to={`/product/${product.id}`} className="product-card__link">
+      <Link to={`/product/${product._id}`} className="product-card__link">
         {/* Badges */}
         <div className="product-card__badges">
           {product.newArrival && <span className="badge badge-new">New</span>}
@@ -92,7 +92,7 @@ const ProductCard = ({ product }) => {
               className="overlay-btn"
               onClick={(e) => {
                 e.preventDefault();
-                navigate(`/product/${product.id}`);
+                navigate(`/product/${product._id}`);
               }}
               aria-label="Quick view"
             >

@@ -1,29 +1,32 @@
 :root {
-  /* Colors */
-  --color-primary: #6c63ff;
-  --color-primary-dark: #5a52d5;
-  --color-primary-light: #8b85ff;
-  --color-secondary: #ff6584;
-  --color-accent: #43e97b;
-  --color-gold: #f5a623;
+  /* Elite 4 Color Palette */
+  --color-gold: #D4AF37;
+  --color-gold-light: #F2D472;
+  --color-gold-dark: #B8860B;
+  
+  --color-primary: var(--color-gold);
+  --color-primary-dark: var(--color-gold-dark);
+  --color-primary-light: var(--color-gold-light);
+  --color-secondary: var(--color-gold); /* Collapsed */
+  --color-accent: var(--color-gold);    /* Collapsed */
 
   /* Backgrounds */
-  --bg-primary: #0d0e1a;
-  --bg-secondary: #1a1b2e;
-  --bg-card: #1e2035;
+  --bg-primary: #0A0B14;
+  --bg-secondary: #141526;
+  --bg-card: #1C1D30;
   --bg-card-hover: #252643;
-  --bg-input: #252643;
-  --bg-overlay: rgba(13, 14, 26, 0.85);
+  --bg-input: #1C1D30;
+  --bg-overlay: rgba(10, 11, 20, 0.9);
 
   /* Text */
-  --text-primary: #f0f0ff;
-  --text-secondary: #a0a0c0;
-  --text-muted: #606080;
-  --text-inverse: #0d0e1a;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B3C1;
+  --text-muted: #6E7081;
+  --text-inverse: #0A0B14;
 
   /* Borders */
-  --border-color: rgba(108, 99, 255, 0.2);
-  --border-color-strong: rgba(108, 99, 255, 0.5);
+  --border-color: rgba(212, 175, 55, 0.15);
+  --border-color-strong: rgba(212, 175, 55, 0.3);
   --border-radius-sm: 6px;
   --border-radius-md: 12px;
   --border-radius-lg: 20px;

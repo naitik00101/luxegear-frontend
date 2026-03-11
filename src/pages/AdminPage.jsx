@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import AdminNavbar from "../components/layout/AdminNavbar";
 import {
   IoGridOutline, IoCubeOutline, IoReceiptOutline,
   IoPeopleOutline, IoCheckmarkCircle, IoCloseCircle,
@@ -7,7 +8,7 @@ import {
 } from "react-icons/io5";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { adminAPI } from "../services/api";
+import { adminAPI, productsAPI } from "../services/api";
 import { formatCurrency } from "../utils/formatCurrency";
 import Spinner from "../components/ui/Spinner";
 import "./AdminPage.css";
@@ -19,14 +20,6 @@ const TABS = [
   { key: "users",     label: "Users",     icon: <IoPeopleOutline size={18} /> },
 ];
 
-const STATUS_COLORS = {
-  pending:    "status-pending",
-  processing: "status-processing",
-  shipped:    "status-shipped",
-  delivered:  "status-delivered",
-  cancelled:  "status-cancelled",
-};
-
 const AdminPage = () => {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -36,7 +29,16 @@ const AdminPage = () => {
   const [stats, setStats]       = useState(null);
   const [orders, setOrders]     = useState([]);
   const [users, setUsers]       = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading]   = useState(false);
+  
+  // Product Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({
+    name: "", category: "headphones", price: 0, stock: 0, 
+    description: "", images: ["", "", ""], tags: ""
+  });
 
   useEffect(() => {
     if (!isAuthenticated) { navigate("/auth"); return; }
@@ -48,9 +50,8 @@ const AdminPage = () => {
     try {
       const { stats: s } = await adminAPI.dashboard();
       setStats(s);
-    } catch (e) {
-      toast.error(e.message);
-    } finally { setLoading(false); }
+    } catch (e) { toast.error(e.message); }
+    finally { setLoading(false); }
   }, [toast]);
 
   const loadOrders = useCallback(async () => {
@@ -58,9 +59,8 @@ const AdminPage = () => {
     try {
       const { orders: o } = await adminAPI.getOrders({ limit: 50 });
       setOrders(o);
-    } catch (e) {
-      toast.error(e.message);
-    } finally { setLoading(false); }
+    } catch (e) { toast.error(e.message); }
+    finally { setLoading(false); }
   }, [toast]);
 
   const loadUsers = useCallback(async () => {
@@ -68,144 +68,203 @@ const AdminPage = () => {
     try {
       const { users: u } = await adminAPI.getUsers({ limit: 50 });
       setUsers(u);
-    } catch (e) {
-      toast.error(e.message);
-    } finally { setLoading(false); }
+    } catch (e) { toast.error(e.message); }
+    finally { setLoading(false); }
+  }, [toast]);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await productsAPI.getAll();
+      setProducts(data.products || data);
+    } catch (e) { toast.error(e.message); }
+    finally { setLoading(false); }
   }, [toast]);
 
   useEffect(() => {
     if (tab === "dashboard") loadDashboard();
     else if (tab === "orders") loadOrders();
     else if (tab === "users") loadUsers();
-  }, [tab, loadDashboard, loadOrders, loadUsers]);
+    else if (tab === "products") loadProducts();
+  }, [tab, loadDashboard, loadOrders, loadUsers, loadProducts]);
 
   const handleUpdateStatus = async (orderId, status) => {
     try {
       await adminAPI.updateStatus(orderId, status);
-      toast.success("Order status updated!");
+      toast.success("Order updated");
       loadOrders();
     } catch (e) { toast.error(e.message); }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!confirm("Delete this user?")) return;
+  const handleUpdateRole = async (userId, role) => {
     try {
-      await adminAPI.deleteUser(userId);
-      toast.success("User deleted.");
+      await adminAPI.updateRole(userId, role);
+      toast.success(`Identity Revised: User elevated to ${role}.`);
       loadUsers();
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const handleOpenModal = (p = null) => {
+    if (p) {
+      setEditingProduct(p);
+      setProductForm({
+        name: p.name, category: p.category, price: p.price, stock: p.stock,
+        description: p.description, images: [...p.images], 
+        tags: Array.isArray(p.tags) ? p.tags.join(", ") : ""
+      });
+    } else {
+      setEditingProduct(null);
+      setProductForm({
+        name: "", category: "headphones", price: 0, stock: 0, 
+        description: "", images: ["", "", ""], tags: ""
+      });
+    }
+    setShowModal(true);
+  };
+
+  const handleSubmitProduct = async (e) => {
+    e.preventDefault();
+    const data = { 
+      ...productForm, 
+      tags: productForm.tags.split(",").map(t => t.trim()).filter(Boolean)
+    };
+    try {
+      if (editingProduct) await productsAPI.update(editingProduct._id, data);
+      else await productsAPI.create(data);
+      toast.success(editingProduct ? "Product updated" : "Product created");
+      setShowModal(false);
+      loadProducts();
     } catch (e) { toast.error(e.message); }
   };
 
-  const handleRoleToggle = async (userId, currentRole) => {
-    const newRole = currentRole === "admin" ? "user" : "admin";
+  const handleDeleteProduct = async (id) => {
+    if (!confirm("Delete this product?")) return;
     try {
-      await adminAPI.updateRole(userId, newRole);
-      toast.success(`Role updated to ${newRole}`);
+      await productsAPI.delete(id);
+      toast.success("Product deleted");
+      loadProducts();
+    } catch (e) { toast.error(e.message); }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!confirm("Delete user?")) return;
+    try {
+      await adminAPI.deleteUser(userId);
+      toast.success("User deleted");
       loadUsers();
     } catch (e) { toast.error(e.message); }
   };
 
   return (
-    <div className="page-wrapper admin-page">
-      <div className="container">
-        <div className="admin-header">
-          <div>
-            <div className="admin-badge"><IoShieldOutline size={16} /> Admin Panel</div>
-            <h1 className="admin-title">LuxeGear Dashboard</h1>
-            <p className="admin-sub">Welcome back, <strong>{user?.name}</strong></p>
+    <div className="admin-page-wrapper">
+      <AdminNavbar />
+      <div className="admin-page">
+        <div className="container">
+          <div className="admin-header">
+            <div>
+              <h1 className="admin-title">Command Center</h1>
+              <p className="admin-subtitle">Inventory & Identity Oversight</p>
+            </div>
+            <button className="admin-refresh-btn" onClick={() => {
+               if (tab === "dashboard") loadDashboard();
+               else if (tab === "orders") loadOrders();
+               else if (tab === "users") loadUsers();
+               else loadProducts();
+            }}>Force Sync</button>
           </div>
-          <button className="admin-refresh-btn" onClick={() => { if (tab === "dashboard") loadDashboard(); else if (tab === "orders") loadOrders(); else loadUsers(); }}>
-            <IoRefreshOutline size={18} /> Refresh
-          </button>
-        </div>
 
-        <div className="admin-tabs">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              className={`admin-tab ${tab === t.key ? "active" : ""}`}
-              onClick={() => setTab(t.key)}
-            >
-              {t.icon} {t.label}
-            </button>
-          ))}
-        </div>
+          <div className="admin-tabs">
+            {TABS.map(t => (
+              <button key={t.key} className={`admin-tab ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-        <div className="admin-content">
-          {loading && (
-            <div className="admin-loader">
-              <Spinner size="xl" />
-            </div>
-          )}
+          <div className="admin-content">
+            {loading && <div className="admin-loader"><Spinner size="xl" /></div>}
 
-          {!loading && tab === "dashboard" && stats && (
-            <div className="dashboard-tab">
-              <div className="stat-cards">
-                {[
-                  { label: "Total Revenue",   value: formatCurrency(stats.revenue),      color: "primary",   icon: <IoReceiptOutline size={20} /> },
-                  { label: "Weekly Revenue",   value: formatCurrency(stats.weeklyRevenue),color: "accent",    icon: <IoReceiptOutline size={20} /> },
-                  { label: "Total Orders",     value: stats.totalOrders,                  color: "secondary", icon: <IoCubeOutline size={20} /> },
-                  { label: "Pending Orders",   value: stats.pendingOrders,                color: "gold",      icon: <IoRefreshOutline size={20} /> },
-                  { label: "Delivered Orders", value: stats.deliveredOrders,              color: "accent",    icon: <IoCheckmarkCircle size={20} /> },
-                  { label: "Total Products",   value: stats.totalProducts,                color: "primary",   icon: <IoCubeOutline size={20} /> },
-                  { label: "Total Users",      value: stats.totalUsers,                   color: "secondary", icon: <IoPeopleOutline size={20} /> },
-                ].map((s) => (
-                  <div key={s.label} className={`stat-card stat-card--${s.color}`}>
-                    <span className="stat-card__icon">{s.icon}</span>
-                    <div>
-                      <p className="stat-card__value">{s.value}</p>
-                      <p className="stat-card__label">{s.label}</p>
-                    </div>
+            {!loading && tab === "dashboard" && stats && (
+              <div className="dashboard-tab">
+                <div className="stat-cards">
+                  <div className="stat-card">
+                    <p className="stat-card__value">{formatCurrency(stats.revenue)}</p>
+                    <p className="stat-card__label">Total Revenue</p>
                   </div>
-                ))}
+                  <div className="stat-card">
+                    <p className="stat-card__value">{stats.totalOrders}</p>
+                    <p className="stat-card__label">Total Orders</p>
+                  </div>
+                  <div className="stat-card">
+                    <p className="stat-card__value">{stats.pendingOrders}</p>
+                    <p className="stat-card__label">Pending</p>
+                  </div>
+                  <div className="stat-card">
+                    <p className="stat-card__value">{stats.totalProducts}</p>
+                    <p className="stat-card__label">Inventory</p>
+                  </div>
+                </div>
               </div>
+            )}
 
-              <div className="admin-info-box">
-                <p><strong>Admin credentials (after seeding):</strong> admin@luxegear.com / admin123</p>
-                <p><strong>Postman:</strong> POST <code>/api/auth/login</code> → copy <code>token</code> → use as <code>Bearer &lt;token&gt;</code> in all protected routes.</p>
-              </div>
-            </div>
-          )}
-
-          {!loading && tab === "orders" && (
-            <div className="orders-tab">
-              <div className="admin-table-wrap">
+            {!loading && tab === "products" && (
+              <div className="products-tab">
+                <div style={{display:'flex', justifyContent:'space-between', marginBottom: '20px'}}>
+                  <h2 style={{fontWeight:300}}>Products</h2>
+                  <button className="elite-btn-gold" onClick={() => handleOpenModal()}>+ Add Item</button>
+                </div>
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Items</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                      <th>Date</th>
+                      <th>Asset</th>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Stock</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.length === 0 ? (
-                      <tr><td colSpan={7} className="empty-row">No orders yet</td></tr>
-                    ) : orders.map((o) => (
-                      <tr key={o._id}>
-                        <td className="order-id-cell">#{o._id.slice(-6).toUpperCase()}</td>
-                        <td>{o.user?.name || o.guestEmail || "Guest"}<br /><span className="table-sub">{o.user?.email}</span></td>
-                        <td>{o.items.length} item{o.items.length !== 1 ? "s" : ""}</td>
-                        <td><strong>{formatCurrency(o.total)}</strong></td>
+                    {products.map(p => (
+                      <tr key={p._id}>
+                        <td><img src={p.images[0]} className="table-img" alt="" /></td>
+                        <td>{p.name}</td>
+                        <td>{formatCurrency(p.price)}</td>
+                        <td>{p.stock}</td>
                         <td>
-                          <span className={`table-badge ${STATUS_COLORS[o.status]}`}>
-                            {o.status}
-                          </span>
+                          <button className="elite-btn-sm" onClick={() => handleOpenModal(p)}>Edit</button>
+                          <button className="elite-btn-sm danger" onClick={() => handleDeleteProduct(p._id)}>Delete</button>
                         </td>
-                        <td className="table-sub">{new Date(o.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {!loading && tab === "orders" && (
+              <div className="orders-tab">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Ref</th>
+                      <th>Client</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(o => (
+                      <tr key={o._id}>
+                        <td style={{fontFamily:'monospace'}}>#{o._id.slice(-6).toUpperCase()}</td>
+                        <td>{o.user?.name || "Guest"}</td>
+                        <td>{formatCurrency(o.total)}</td>
+                        <td><span style={{color: o.status === 'delivered' ? '#D4AF37' : '#888'}}>{o.status}</span></td>
                         <td>
-                          <select
-                            className="status-select"
-                            value={o.status}
-                            onChange={(e) => handleUpdateStatus(o._id, e.target.value)}
-                          >
-                            {["pending","processing","shipped","delivered","cancelled"].map((s) => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
+                          <select className="elite-select" value={o.status} onChange={(e) => handleUpdateStatus(o._id, e.target.value)}>
+                            {["pending","processing","shipped","delivered","cancelled"].map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         </td>
                       </tr>
@@ -213,94 +272,93 @@ const AdminPage = () => {
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
+            )}
 
-          {!loading && tab === "users" && (
-            <div className="users-tab">
-              <div className="admin-table-wrap">
+            {!loading && tab === "users" && (
+              <div className="users-tab">
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>User</th>
+                      <th>Identity</th>
                       <th>Email</th>
                       <th>Role</th>
-                      <th>Joined</th>
-                      <th>Actions</th>
+                      <th>Management</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.length === 0 ? (
-                      <tr><td colSpan={5} className="empty-row">No users yet</td></tr>
-                    ) : users.map((u) => (
+                    {users.map(u => (
                       <tr key={u._id}>
-                        <td>
-                          <div className="user-cell">
-                            <img src={u.avatar} alt={u.name} className="user-cell__avatar" />
-                            <span>{u.name}</span>
-                          </div>
-                        </td>
+                        <td>{u.name}</td>
                         <td>{u.email}</td>
                         <td>
-                          <span className={`table-badge ${u.role === "admin" ? "status-delivered" : "status-processing"}`}>
+                          <span className={`role-badge ${u.role}`}>
                             {u.role}
                           </span>
                         </td>
-                        <td className="table-sub">{new Date(u.createdAt).toLocaleDateString()}</td>
-                        <td className="actions-cell">
-                          <button
-                            className="action-btn"
-                            title={u.role === "admin" ? "Demote to user" : "Promote to admin"}
-                            onClick={() => handleRoleToggle(u._id, u.role)}
-                          >
-                            {u.role === "admin" ? <IoCloseCircle size={18} /> : <IoCheckmarkCircle size={18} />}
-                          </button>
-                          <button
-                            className="action-btn danger"
-                            title="Delete user"
-                            onClick={() => handleDeleteUser(u._id)}
-                          >
-                            <IoTrashOutline size={18} />
-                          </button>
+                        <td>
+                          <div style={{display:'flex', gap:'10px'}}>
+                            <select 
+                              className="elite-select-sm" 
+                              value={u.role} 
+                              onChange={(e) => handleUpdateRole(u._id, e.target.value)}
+                              disabled={u._id === user._id}
+                            >
+                              <option value="user">USER</option>
+                              <option value="admin">ADMIN</option>
+                            </select>
+                            <button 
+                              className="elite-btn-sm danger" 
+                              onClick={() => handleDeleteUser(u._id)}
+                              disabled={u._id === user._id}
+                            >
+                              Terminate
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {!loading && tab === "products" && (
-            <div className="products-tab">
-              <div className="admin-info-box">
-                <p>Products are managed via the REST API. Use <strong>Postman</strong> to:</p>
-                <ul>
-                  <li>GET <code>/api/products</code> — list all products (public)</li>
-                  <li>POST <code>/api/products</code> — create (admin JWT required)</li>
-                  <li>PUT <code>/api/products/:id</code> — update (admin JWT required)</li>
-                  <li>DELETE <code>/api/products/:id</code> — delete (admin JWT required)</li>
-                </ul>
-                <p>Run <code>npm run seed</code> in <code>server/</code> to populate 16 products into MongoDB.</p>
-              </div>
-              <div className="admin-api-card">
-                <h3>Quick Postman Reference</h3>
-                <div className="api-rows">
-                  {[
-                    { method: "POST", url: "/api/auth/login",      note: "Body: {email, password} → returns token" },
-                    { method: "GET",  url: "/api/products",         note: "List all — public" },
-                    { method: "GET",  url: "/api/admin/dashboard",  note: "Auth: Bearer token (admin)" },
-                    { method: "GET",  url: "/api/admin/orders",     note: "Auth: Bearer token (admin)" },
-                    { method: "PUT",  url: "/api/admin/orders/:id/status", note: "Body: {status}" },
-                    { method: "GET",  url: "/api/admin/users",      note: "Auth: Bearer token (admin)" },
-                  ].map((r) => (
-                    <div key={r.url} className="api-row">
-                      <span className={`method-badge method-${r.method.toLowerCase()}`}>{r.method}</span>
-                      <code className="api-url">{r.url}</code>
-                      <span className="api-note">{r.note}</span>
+          {showModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3 style={{fontWeight:300, marginBottom: '20px'}}>{editingProduct ? "Revise Asset" : "New Asset"}</h3>
+                <form onSubmit={handleSubmitProduct} className="elite-form">
+                  <div className="form-group">
+                    <label>Name</label>
+                    <input required value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} />
+                  </div>
+                  <div style={{display:'flex', gap:'20px'}}>
+                    <div className="form-group" style={{flex:1}}>
+                      <label>Price</label>
+                      <input type="number" required value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} />
                     </div>
-                  ))}
-                </div>
+                    <div className="form-group" style={{flex:1}}>
+                      <label>Stock</label>
+                      <input type="number" required value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea rows="3" required value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label>Image URL</label>
+                    <input required value={productForm.images[0]} onChange={e => {
+                      const imgs = [...productForm.images];
+                      imgs[0] = e.target.value;
+                      setProductForm({...productForm, images: imgs});
+                    }} />
+                  </div>
+                  <div style={{display:'flex', gap:'20px', marginTop:'10px'}}>
+                    <button type="button" onClick={() => setShowModal(false)} style={{flex:1, border:'1px solid #333', color:'#888', padding:'12px'}}>Abort</button>
+                    <button type="submit" className="elite-btn-gold" style={{flex:1, padding:'12px'}}>Commit</button>
+                  </div>
+                </form>
               </div>
             </div>
           )}
