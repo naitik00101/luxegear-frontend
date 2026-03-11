@@ -1,4 +1,4 @@
-# LuxeGear — Premium E-Commerce Experience (INR Edition)
+# LuxeGear — Premium E-Commerce Experience
 
 LuxeGear is a full-stack, professional-grade e-commerce platform designed for high-performance tech enthusiasts. It features a sleek, responsive UI, robust backend architecture, and an enterprise-grade security suite.
 
