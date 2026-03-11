@@ -33,15 +33,22 @@ connectDB();
 const allowedOrigins = [
     "https://luxegear-vip.vercel.app",
     "https://luxegear-frontend.vercel.app",
+    "https://luxegear.vercel.app",
     "http://localhost:5173",
+    "http://localhost:5000",
     process.env.CLIENT_URL,
 ].filter(Boolean);
 
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
+    origin: (origin, callback) => {
+        // Allow internal requests or those with no origin
+        if (!origin) return callback(null, true);
+
+        // Match exact or check if it ends with vercel.app (optional but safer for now)
+        if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
             callback(null, true);
         } else {
+            console.warn(`[CORS] Rejected origin: ${origin}`);
             callback(new Error("Not allowed by CORS"));
         }
     },
