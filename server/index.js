@@ -27,7 +27,6 @@ initializePassport();
 
 const app = express();
 
-// ── CORS (Must be at the top to handle preflight requests) ────────────
 const allowedOrigins = [
     "https://luxegear-vip.vercel.app",
     "https://luxegear-frontend.vercel.app",
@@ -39,11 +38,10 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            console.warn(`[CORS] Rejected origin: ${origin}`);
+            console.warn(`[CORS] Rejected: ${origin}`);
             callback(new Error("Not allowed by CORS"));
         }
     },
